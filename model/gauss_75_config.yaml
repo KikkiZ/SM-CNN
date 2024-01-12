@@ -2,7 +2,7 @@ K: 24
 batch_size: 8
 epochs: 50
 lr: 0.0001
-noise_level: 0.294
+noise_level: 0.294 # == 75 / 255
 noisy_type: gauss
 num_conv2d_filters: 20
 num_conv3d_filters: 20

@@ -1,12 +1,12 @@
-import scipy.io as io
 import numpy as np
-from utils import _np_noise
+import scipy.io as io
 from torch.utils.data import Dataset
 
-#hyperparameter K; the number of spectral bands to consider
+
+# hyperparameter K; the number of spectral bands to consider
 
 class dataset:
-    def __init__(self,patch_shape, config, training=True, validation=True):
+    def __init__(self, patch_shape, config, training=True, validation=True):
 
         self.train_files = config.train_file
         self.valid_files = config.valid_file
@@ -97,6 +97,7 @@ class dataset:
                                                         ..., range(self.bands - 1, self.bands - int(self.K / 2) - 1,
                                                                    -1)]],
                                                    axis=-1)
+
     def load_real_data(self):
         if self.training:
             image = io.loadmat(self.train_files)
@@ -130,7 +131,7 @@ class dataset:
             print(self.data.shape)
 
     def get_patch(self):
-        #shape = [20, 20]
+        # shape = [20, 20]
         clean_band = []
         bandwidth = []
         spatial_image = []
@@ -157,15 +158,15 @@ class dataset:
                     bandwidth.append(np.transpose(bands[:, :, i:i + int(self.K)], axes=(2, 0, 1)))
                     if self.train_type == 'b2b':
                         spectral_volume.append(np.transpose(np.concatenate(
-                                               [patches[:, :, i:i + int(self.K/2)-1],
-                                                patches[:, :, i + int(self.K/2):i + int(self.K)+1]],
-                                               axis=-1), axes=(2, 0, 1)))
-                        spatial_image_adjacent.append(np.expand_dims(patches[:, :, i + int(self.K/2)-1], axis=0))
+                            [patches[:, :, i:i + int(self.K / 2) - 1],
+                             patches[:, :, i + int(self.K / 2):i + int(self.K) + 1]],
+                            axis=-1), axes=(2, 0, 1)))
+                        spatial_image_adjacent.append(np.expand_dims(patches[:, :, i + int(self.K / 2) - 1], axis=0))
 
                     elif self.train_type == 'n2n':
                         spatial_image_adjacent.append(np.expand_dims(patches_2[:, :, i + int(self.K / 2)], axis=0))
                         spectral_volume.append(np.transpose(patches[:, :, i:i + int(self.K)],
-                                                                           axes=(2, 0, 1)))
+                                                            axes=(2, 0, 1)))
                     else:
                         """spectral_volume.append(np.expand_dims(np.transpose(patches[:, :, i:i + int(self.K)],
                                                                            axes=(2, 0, 1)), axis=0))"""
@@ -175,8 +176,7 @@ class dataset:
 
         return clean_band, spatial_image, spatial_image_adjacent, spectral_volume, bandwidth
 
-
-    def merged_patch(self,clean_image_list,noise_image_list,hsi_image_list):
+    def merged_patch(self, clean_image_list, noise_image_list, hsi_image_list):
         clean_image = np.zeros(self.data.shape, dtype=np.float32)
         noise_image = np.zeros(self.data.shape, dtype=np.float32)
         hsi_image = np.zeros(self.data.shape, dtype=np.float32)
@@ -202,11 +202,11 @@ class dataset:
         for i in range(0, len(clean_band)):
             if self.training:
                 for k in range(0, 4):
-                    o_clean_band.append(np.rot90(clean_band[i], k=k, axes=(1,2)).copy())
-                    o_spatial_image.append(np.rot90(spatial_image[i], k=k, axes=(1,2)).copy())
-                    o_spatial_image_adjacent.append(np.rot90(spatial_image_adjacent[i], k=k, axes=(1,2)).copy())
-                    o_spectral_volume.append(np.rot90(spectral_volume[i], k=k, axes=(1,2)).copy())
-                    o_bandwidth.append(np.rot90(bandwidth[i], k=k, axes=(1,2)).copy())
+                    o_clean_band.append(np.rot90(clean_band[i], k=k, axes=(1, 2)).copy())
+                    o_spatial_image.append(np.rot90(spatial_image[i], k=k, axes=(1, 2)).copy())
+                    o_spatial_image_adjacent.append(np.rot90(spatial_image_adjacent[i], k=k, axes=(1, 2)).copy())
+                    o_spectral_volume.append(np.rot90(spectral_volume[i], k=k, axes=(1, 2)).copy())
+                    o_bandwidth.append(np.rot90(bandwidth[i], k=k, axes=(1, 2)).copy())
             else:
                 o_clean_band = clean_band
                 o_spatial_image = spatial_image
@@ -225,9 +225,9 @@ class MyDataset(Dataset):
     def __init__(self, patch_shape, config, training=True, validation=False, transform=None):
         self.data = dataset(patch_shape, config, training=training, validation=validation)
         self.data.load_data()
-        #self.data.load_real_data()
+        # self.data.load_real_data()
         self.transform = transform
-        self.clean_band, self.spatial_image, self.spatial_image_adjacent, self.spectral_volume, self.bandwidth\
+        self.clean_band, self.spatial_image, self.spatial_image_adjacent, self.spectral_volume, self.bandwidth \
             = self.data.generator()
         self.merged_patch = self.data.merged_patch
         self.save_output = self.data.save_output

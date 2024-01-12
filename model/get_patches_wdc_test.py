@@ -42,9 +42,9 @@ bands = clean_img['gt'].shape[0]
 clean = np.concatenate([clean_img['gt'][range(int(ADJ_BANDS / 2), 0, -1), ...],
                         clean_img['gt'],
                         clean_img['gt'][range(bands - 1, bands - int(ADJ_BANDS / 2), -1), ...]], axis=0)
-noisy = np.concatenate([clean_img['noisy'][range(int(ADJ_BANDS / 2), 0, -1), ...],
-                        clean_img['noisy'],
-                        clean_img['noisy'][range(bands - 1, bands - int(ADJ_BANDS / 2), -1), ...]], axis=0)
+noisy = np.concatenate([clean_img['input'][range(int(ADJ_BANDS / 2), 0, -1), ...],
+                        clean_img['input'],
+                        clean_img['input'][range(bands - 1, bands - int(ADJ_BANDS / 2), -1), ...]], axis=0)
 
 
 def save_output(path, gt, decrease, name):

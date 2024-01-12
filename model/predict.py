@@ -102,6 +102,7 @@ def test(dataloader, model, loss_fn):
             clean_band, spectral_volume = clean_band.to(device), spectral_volume.to(device)
             spatial_image = spatial_image.to(device)
 
+            # 拓展输入数据的维度
             clean_band = torch.unsqueeze(clean_band, dim=0)
             spatial_image = torch.unsqueeze(spatial_image, dim=0)
             spectral_volume = torch.unsqueeze(spectral_volume, dim=0)
@@ -144,23 +145,24 @@ test_loss_avg, clean, noisy, test_output, mpsnr, mssim = test(test_dataloader, m
 elapsed = time.time() - inittime
 print(f'Test completed... Elapsed = {elapsed:>.4f}')
 
-clean_image, noise_image, hsi_image = merged_patch(clean, noisy, test_output, shape=(200, 200, 191), patch=256)
+clean_image, noise_image, hsi_image = merged_patch(clean, noisy, test_output, shape=(200, 200, 191), patch=200)
 img_ar_noisy = np.clip(noise_image, 0, 1)
 img_ar_hsid = np.clip(hsi_image, 0, 1)
 img_ar_clean = np.clip(clean_image, 0, 1)
+print(img_ar_clean.shape)
 
 save_output(img_ar_hsid, save_dir, train_type)
 
 fig, (axe11, axe12, axe13) = plt.subplots(1, 3, figsize=(12, 4))
 fig.subplots_adjust(wspace=0, hspace=0)
 
-axe11.set_title('Temiz görüntü', fontsize=12)
-axe11.imshow(img_ar_clean[:, :, [57, 27, 17]], cmap='gray')
-axe12.set_title('Gürültülü görüntü ($\sigma$=%d)' % (round(noise_level * 255)), fontsize=12)
-axe12.imshow(img_ar_noisy[:, :, [57, 27, 17]], cmap='gray')
+axe11.set_title('origin image', fontsize=12)
+axe11.imshow(img_ar_clean[:, :, [56, 26, 16]])
+axe12.set_title('decrease image%d' % (round(noise_level * 255)), fontsize=12)
+axe12.imshow(img_ar_noisy[:, :, [56, 26, 16]])
 axe13.set_title(arch + '(PSNR=%.3f, SSIM=%.3f)' % (mpsnr, mssim), fontsize=12)
-axe13.imshow(img_ar_hsid[:, :, [57, 27, 17]], cmap='gray')
+axe13.imshow(img_ar_hsid[:, :, [56, 26, 16]])
 plt.tight_layout()
 plt.savefig(save_dir + '/rgb_' + train_type + ".png")
-# plt.show()
+plt.show()
 print("Done!")

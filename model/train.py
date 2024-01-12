@@ -113,6 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--config-file', help='path to the config file')
     args = parser.parse_args()
 
+    # 读取配置文件
     with open(args.config_file) as fp:
         config = yaml.safe_load(fp)
         config = AttrDict(config)
@@ -150,6 +151,7 @@ if __name__ == '__main__':
     train_data = get_training_data(train_file, img_options_train)
     valid_data = get_training_data(valid_file, img_options_train)
 
+    # 加载数据
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=8)
     valid_dataloader = DataLoader(valid_data, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=8)
 
@@ -194,6 +196,7 @@ if __name__ == '__main__':
     print("Loss is " + loss_type)
     print("Model is " + arch)
 
+    # 噪声模型
     sigmas = [10, 30, 50, 70]
     blind_noise = AddNoiseBlind(sigmas)
     complex_noise = Compose([
@@ -224,6 +227,7 @@ if __name__ == '__main__':
 
     writer = SummaryWriter(save_dir)
 
+    # 开始训练
     for t in range(init_epoch + 1, num_epochs + 1):
         print(f"Epoch {t}\n-------------------------------")
         train_loss_avg, train_psnr_avg, train_ssim_avg = train(train_dataloader, model, loss_fn, optimizer)

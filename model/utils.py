@@ -5,46 +5,52 @@ import scipy.io as io
 from collections import OrderedDict
 import threading
 
-def _loss(x,y_out):
-    #loss = torch.nn.MSELoss(y_out, x-x_noisy).
+
+def _loss(x, y_out):
+    # loss = torch.nn.MSELoss(y_out, x-x_noisy).
     """shape = x.shape
     x = torch.reshape(x, shape=(shape[0], shape[2], shape[3]))
     x_noisy = torch.reshape(x_noisy, shape=(shape[0], shape[2], shape[3]))
     y_out = torch.reshape(y_out, shape=(shape[0], shape[2], shape[3]))"""
     loss = L1Loss()(x, y_out)
-    #loss = torch.norm(y_out-(x-x_noisy), p=2)
-    #loss = torch.norm(y_out-x, p=2)
-    #loss = tf.norm(y_out-x, ord='euclidean')
+    # loss = torch.norm(y_out-(x-x_noisy), p=2)
+    # loss = torch.norm(y_out-x, p=2)
+    # loss = tf.norm(y_out-x, ord='euclidean')
 
     return loss
+
 
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-def _np_noise(volume,noise_level):
+
+def _np_noise(volume, noise_level):
     shape = volume.shape
     noise = np.random.normal(0.0, noise_level, shape).astype(np.float32)
     noise_simulated_data = volume + noise
     noise_simulated_data = np.clip(noise_simulated_data, 0, 1)
     return noise_simulated_data
 
-def torch_noise(volume,noise_level):
+
+def torch_noise(volume, noise_level):
     shape = volume.shape
     noise = torch.normal(0.0, noise_level, size=shape)
     noise_simulated_data = volume + noise
-    #noise_simulated_data = np.clip(noise_simulated_data, 0, 1)
+    # noise_simulated_data = np.clip(noise_simulated_data, 0, 1)
     return noise_simulated_data
+
 
 def torch_blindnoise(volume, min_sigma, max_sigma):
     shape = volume.shape
     noise = np.random.randn(shape) * np.random.uniform(min_sigma, max_sigma) / 255
     noise_simulated_data = volume + torch.from_numpy(noise)
-    #noise_simulated_data = np.clip(noise_simulated_data, 0, 1)
+    # noise_simulated_data = np.clip(noise_simulated_data, 0, 1)
     return noise_simulated_data
 
-def merged_patch(clean_image_list,noise_image_list,hsi_image_list, shape=(200, 200, 191), patch=20):
+
+def merged_patch(clean_image_list, noise_image_list, hsi_image_list, shape=(200, 200, 191), patch=20):
     clean_image = np.zeros(shape, dtype=np.float32)
     noise_image = np.zeros(shape, dtype=np.float32)
     hsi_image = np.zeros(shape, dtype=np.float32)
@@ -53,16 +59,18 @@ def merged_patch(clean_image_list,noise_image_list,hsi_image_list, shape=(200, 2
         for y in range(0, num_patches):
             for z in range(0, shape[2]):
                 clean_image[x * patch:x * patch + patch, y * patch:y * patch + patch, z] = \
-                    clean_image_list[x*num_patches*shape[2]+ y*shape[2] + z]
+                    clean_image_list[x * num_patches * shape[2] + y * shape[2] + z]
                 noise_image[x * patch:x * patch + patch, y * patch:y * patch + patch, z] = \
-                    noise_image_list[x*num_patches*shape[2]+ y*shape[2] + z]
+                    noise_image_list[x * num_patches * shape[2] + y * shape[2] + z]
                 hsi_image[x * patch:x * patch + patch, y * patch:y * patch + patch, z] = \
-                    hsi_image_list[x*num_patches*shape[2]+ y*shape[2] + z]
+                    hsi_image_list[x * num_patches * shape[2] + y * shape[2] + z]
     return clean_image, noise_image, hsi_image
+
 
 def save_output(data, path, train_type):
     mdic = {"data": data}
-    io.savemat(path + "/hsi_"+train_type+".mat", mdic)
+    io.savemat(path + "/hsi_" + train_type + ".mat", mdic)
+
 
 def load_checkpoint(model, checkpoint):
     try:
@@ -74,6 +82,7 @@ def load_checkpoint(model, checkpoint):
             name = k[7:] if 'module.' in k else k
             new_state_dict[name] = v
         model.load_state_dict(new_state_dict)
+
 
 def load_checkpoint2(model, checkpoint):
     try:
@@ -101,6 +110,7 @@ class AddNoiseNoniid(object):
 
 class AddNoiseBlind(object):
     """add blind gaussian noise to the given numpy array (B,H,W)"""
+
     def __pos(self, n):
         i = 0
         while True:
@@ -116,12 +126,14 @@ class AddNoiseBlind(object):
         volume = img + torch.from_numpy(np.float32(noise))
         return volume
 
+
 class LockedIterator(object):
     def __init__(self, it):
         self.lock = threading.Lock()
         self.it = it.__iter__()
 
-    def __iter__(self): return self
+    def __iter__(self):
+        return self
 
     def __next__(self):
         self.lock.acquire()
@@ -160,7 +172,7 @@ class AddNoiseMixed(object):
         self.num_bands = num_bands
 
     def __call__(self, img):
-        X,Y, B, H, W = img.shape
+        X, Y, B, H, W = img.shape
         all_bands = np.random.permutation(range(B))
         pos = 0
         for noise_maker, num_band in zip(self.noise_bank, self.num_bands):
@@ -183,7 +195,7 @@ class _AddNoiseImpulse(object):
         # bands = np.random.permutation(range(img.shape[0]))[:self.num_band]
         bwamounts = self.amounts[np.random.randint(0, len(self.amounts), len(bands))]
         for i, amount in zip(bands, bwamounts):
-            self.add_noise(img[:,:, i, ...], amount=amount, salt_vs_pepper=self.s_vs_p)
+            self.add_noise(img[:, :, i, ...], amount=amount, salt_vs_pepper=self.s_vs_p)
         return img
 
     def add_noise(self, image, amount, salt_vs_pepper):

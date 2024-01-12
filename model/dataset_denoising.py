@@ -1,14 +1,13 @@
-import numpy as np
 import os
-from torch.utils.data import Dataset
-import torch
-import torch.nn.functional as F
 import random
-from PIL import Image
-import torchvision.transforms.functional as TF
-from scipy.io import loadmat
-from natsort import natsorted
 from glob import glob
+
+import numpy as np
+import torch
+from natsort import natsorted
+from scipy.io import loadmat
+from torch.utils.data import Dataset
+
 from dataset_utils import Augment_RGB_torch
 
 augment = Augment_RGB_torch()
@@ -32,7 +31,7 @@ class DataLoaderTrain(Dataset):
         tar_index = index % self.tar_size
         clean = np.float32(loadmat(self.files_name[tar_index])['gt'])
         clean = torch.from_numpy(clean)
-        clean = clean.permute(2, 0, 1)
+        # clean = clean.permute(2, 0, 1)
         # Crop Input and Target
         ps = self.img_options['patch_size']
         K = self.img_options['K']
@@ -73,8 +72,8 @@ class DataLoaderTest(Dataset):
 
         clean = torch.from_numpy(clean)
         noisy = torch.from_numpy(noisy)
-        clean = torch.unsqueeze(clean.permute(2, 0, 1), dim=0)
-        noisy = torch.unsqueeze(noisy.permute(2, 0, 1), dim=0)
+        # clean = torch.unsqueeze(clean.permute(2, 0, 1), dim=0)
+        # noisy = torch.unsqueeze(noisy.permute(2, 0, 1), dim=0)
 
         clean_filename = os.path.split(self.files_name[tar_index])[-1]
 
